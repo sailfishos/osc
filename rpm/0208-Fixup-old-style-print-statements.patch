@@ -1,0 +1,50 @@
+From aba404c164a4244a5e42c5bbd69e3d279ad61bb2 Mon Sep 17 00:00:00 2001
+From: Marko Lemmetty <marko.lemmetty@jollamobile.com>
+Date: Fri, 15 May 2020 15:55:48 +0300
+Subject: [PATCH 8/8] Fixup old style print statements
+
+---
+ osc/commandline.py | 6 +++---
+ osc/core.py        | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/osc/commandline.py b/osc/commandline.py
+index 2fce671..92af591 100644
+--- a/osc/commandline.py
++++ b/osc/commandline.py
+@@ -3133,7 +3133,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+         if src_project == dst_project:
+             raise oscerr.WrongArgs('Source and destination are the same.')
+ 
+-        print "calling cp"
++        print("calling cp")
+         r = copy_prj(src_apiurl, src_project, dst_project,
+                      withbinaries = opts.with_binaries,
+                      withhistory = opts.with_history,
+@@ -3141,8 +3141,8 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+                      resign = opts.re_sign,
+                      now = opts.now, prjconf = opts.prjconf,
+                      comment = comment)
+-        print "done cp"
+-        print r
++        print("done cp")
++        print(r)
+ 
+ 
+     @cmdln.option('-m', '--message', metavar='TEXT',
+diff --git a/osc/core.py b/osc/core.py
+index 147b575..de69382 100644
+--- a/osc/core.py
++++ b/osc/core.py
+@@ -5521,7 +5521,7 @@ def copy_prj(src_apiurl, src_project, dst_project,
+     Copying can only be done on the server, in a single api call.
+     """
+ 
+-    print 'Copying project...'
++    print('Copying project...')
+     query = {'cmd': 'copy', 'oproject': src_project }
+     if withbinaries:
+         query['withbinaries'] = '1'
+-- 
+2.25.4
+

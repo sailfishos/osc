@@ -3,7 +3,6 @@
 # for obs source services
 %global obsroot %{_prefix}/lib/obs
 %global obs_srcsvc_dir %{obsroot}/service
-%global __python %{__python3}
 
 Name:           osc
 Summary:        Open Build Service Commander
@@ -12,28 +11,23 @@ Release:        0
 License:        GPLv2+
 URL:            https://github.com/openSUSE/osc
 BuildArch:      noarch
-Source0:        %{name}-%{version}.tar.bz2
-	
-# Backports from upstream	
-## Fix various "osc chroot" regressions
-Patch0001:      0001-fix-regression-in-osc-chroot.patch
-# Proposed fixes
-## Fix osc build --local-package runs
-## From: https://github.com/openSUSE/osc/pull/573
-Patch0101:      0101-Do-not-attempt-to-run-source-services-when-local-pac.patch
-## Use html.escape instead of cgi.escape
-## From: https://github.com/openSUSE/osc/pull/681
-Patch0102:      0102-Swap-all-usage-of-cgi.escape-with-html.escape.patch
-## Fix broken importsrcpkg for Python 3
-## From: https://github.com/openSUSE/osc/pull/713
-Patch0103:      0103-fix-broken-importsrcpkg-for-python3.patch
+Source0:        %{name}-%{version}.tar.xz
+#For SailfishOS
+Patch0201:      0201-Add-sb2install-support-to-osc.patch
+Patch0202:      0202-Support-osc-copyprj-in-api-by-Islam-Amer.patch
+Patch0203:      0203-Support-synchronous-copyproj.patch
+Patch0204:      0204-Add-p-to-copyprj-to-enable-copying-of-prjconf.patch
+Patch0205:      0205-Add-support-for-rebuild-and-chroot-only-in-build.patch
+Patch0206:      0206-Add-architecture-and-scheduler-maps.patch
+Patch0207:      0207-Trap-any-kind-of-exception-during-plugin-parsing-eg-.patch
+Patch0208:      0208-Fixup-old-style-print-statements.patch
 
 BuildRequires:  python3-devel	
 BuildRequires:  python3-distro
 BuildRequires:  rpm-python
 Requires:       python3-distro
 Requires:       rpm-python
-Requires:       python3-m2crypto
+Requires:       python-m2crypto
 Requires:       python3-lxml
 
 %description
@@ -54,8 +48,6 @@ rm -rf %{buildroot}
 
 %__ln_s osc-wrapper.py %{buildroot}%{_bindir}/osc
 %__mkdir_p %{buildroot}%{_localstatedir}/lib/osc-plugins
-%__mkdir_p %{buildroot}%{_datadir}/bash-completion/completions/
-install -Dm0644 dist/complete.csh %{buildroot}%{_sysconfdir}/profile.d/osc.csh
 install -Dm0644 dist/complete.sh %{buildroot}%{_datadir}/bash-completion/completions/osc
 install -Dm0755 dist/osc.complete %{buildroot}%{_datadir}/osc/complete
 
@@ -73,8 +65,7 @@ EOM
 %doc AUTHORS README TODO NEWS
 %license COPYING
 %{_bindir}/osc*
-%{python_sitelib}/osc*
-%{_sysconfdir}/profile.d/osc.csh
+%{python3_sitelib}/osc*
 %{_datadir}/bash-completion/completions/osc
 %dir %{_localstatedir}/lib/osc-plugins
 %{_mandir}/man1/osc.*
