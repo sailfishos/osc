@@ -1,0 +1,129 @@
+From 76793cc0ac34523aa237cad407cb8dcb816dac7b Mon Sep 17 00:00:00 2001
+From: lethliel <mstrigl@suse.de>
+Date: Wed, 11 Dec 2019 14:20:54 +0100
+Subject: [PATCH] fix regression in osc chroot
+
+This fixes some regressions with osc chroot:
+
+- osc chroot --wipe --root=/dir/ can now be called outside
+  a working copy
+- osc chroot --noinit --root=/dir/ can now be called outside
+  a working copy and behaves like the old code (Just entering
+  the chroot without any modifications)
+- The confirmation of the deletion is implemented again and thus
+  the --force option was implemented too.
+---
+ osc/build.py       | 32 ++++++++++++++++++++++++++------
+ osc/commandline.py | 32 +++++++++++++++++++++++++++++---
+ 2 files changed, 55 insertions(+), 9 deletions(-)
+
+diff --git a/osc/build.py b/osc/build.py
+index 8f599b85..46bd61f0 100644
+--- a/osc/build.py
++++ b/osc/build.py
+@@ -524,6 +524,32 @@ def get_kiwipath_from_buildinfo(apiurl, bi_filename, prj, repo):
+     kiwipath.insert(0, myprp)
+     return kiwipath
+ 
++def calculate_prj_pac(opts, descr):
++    project = opts.alternative_project or store_read_project('.')
++    if opts.local_package:
++        package = os.path.splitext(os.path.basename(descr))[0]
++    else:
++        package = store_read_package('.')
++    return project, package
++
++def calculate_build_root(apihost, prj, pac, repo, arch):
++    buildroot = os.environ.get('OSC_BUILD_ROOT', config['build-root']) \
++                            % {'repo': repo, 'arch': arch, 'project': prj, 'package': pac, 'apihost': apihost}
++    return buildroot
++
++def run_build(*args):
++    cmd = [config['build-cmd']]
++    cmd += args
++
++    sucmd = os.environ.get('OSC_SU_WRAPPER', config['su-wrapper']).split()
++    if sucmd[0] == 'su':
++        if sucmd[-1] == '-c':
++            sucmd.pop()
++        cmd = sucmd + ['-s', cmd[0], 'root', '--'] + cmd[1:]
++    else:
++        cmd = sucmd + cmd
++    return run_external(cmd[0], *cmd[1:])
++
+ def main(apiurl, opts, argv):
+ 
+     repo = argv[0]
+@@ -696,12 +722,6 @@ def main(apiurl, opts, argv):
+ 
+     if opts.shell:
+         buildargs.append("--shell")
+-        if os.path.exists(build_root) and os.path.exists(bi_filename) and not opts.clean and not opts.extra_pkgs:
+-            opts.noinit = True
+-            opts.offline = True
+-            # we should check if the service did run before and only skip it then,
+-            # but we have no save point for this atm
+-            opts.noservice = True
+ 
+     if opts.noinit:
+         buildargs.append('--noinit')
+diff --git a/osc/commandline.py b/osc/commandline.py
+index 78e66e02..cbb8dfe0 100644
+--- a/osc/commandline.py
++++ b/osc/commandline.py
+@@ -6341,6 +6341,8 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+                   help=SUPPRESS_HELP)
+     @cmdln.option('--shell-cmd', metavar='COMMAND',
+                   help='run specified command instead of bash')
++    @cmdln.option('-f', '--force', action='store_true',
++                  help='Do not ask for confirmation to wipe')
+     @cmdln.option('--host', metavar='HOST',
+             help='perform the build on a remote server - user@server:~/remote/directory')
+     @cmdln.option('--trust-all-projects', action='store_true',
+@@ -6425,9 +6427,6 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+         if opts.debuginfo and opts.disable_debuginfo:
+             raise oscerr.WrongOptions('osc: --debuginfo and --disable-debuginfo are mutual exclusive')
+ 
+-        if subcmd == 'chroot' or subcmd == 'shell':
+-            opts.shell = True
+-
+         if subcmd == 'wipe':
+             opts.wipe = True
+ 
+@@ -6450,6 +6449,33 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+                if not opts.vm_type:
+                   opts.vm_type = lastbuildroot[2]
+ 
++        vm_chroot = opts.vm_type or conf.config['build-type']
++        if (subcmd in ('shell', 'chroot') or opts.shell or opts.wipe) and not vm_chroot:
++            if opts.root:
++                build_root = opts.root
++            else:
++                args = self.parse_repoarchdescr(args, opts.noinit or opts.offline, opts.alternative_project, False, opts.vm_type, opts.multibuild_package)
++                repo, arch, build_descr = args
++                prj, pac = osc.build.calculate_prj_pac(opts, build_descr)
++                apihost = urlsplit(self.get_api_url())[1]
++                build_root = osc.build.calculate_build_root(apihost, prj, pac, repo,
++                                                    arch)
++            if opts.wipe and not opts.force:
++                    # Confirm delete
++                    print("Really wipe '%s'? [y/N]: " % build_root)
++                    choice = raw_input().lower()
++                    if choice != 'y':
++                        print('Aborting')
++                        sys.exit(0)
++            build_args = ['--root=' + build_root, '--noinit', '--shell']
++            if opts.wipe:
++                build_args.append('--wipe')
++            sys.exit(osc.build.run_build(*build_args))
++        elif subcmd in ('shell', 'chroot') or opts.shell:
++            print('--shell in combination with build-type %s is experimental.' % vm_chroot)
++            print('The semantics may change at any time!')
++            opts.shell = True
++
+         args = self.parse_repoarchdescr(args, opts.noinit or opts.offline, opts.alternative_project, False, opts.vm_type, opts.multibuild_package)
+ 
+         if not opts.local_package:
+-- 
+2.23.0
+

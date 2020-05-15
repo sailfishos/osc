@@ -1,0 +1,38 @@
+From ae0b55de3bb2e8f2d6876140d6f4121af35e7b50 Mon Sep 17 00:00:00 2001
+From: Frank Schreiner <schreiner@suse.de>
+Date: Fri, 20 Dec 2019 08:36:08 +0100
+Subject: [PATCH] fix broken importsrcpkg for python3
+
+without this patch, `importsrcpkg` breaks with the following output:
+
+```
+  File "/usr/lib/python3.7/site-packages/osc/commandline.py", line 7868, in do_importsrcpkg
+    createPackageDir(os.path.join(project.dir, pac), project)
+  File "/usr/lib64/python3.7/posixpath.py", line 94, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib64/python3.7/genericpath.py", line 151, in _check_arg_types
+    raise TypeError("Can't mix strings and bytes in path components") from None
+TypeError: Can't mix strings and bytes in path components
+```
+
+Fixes #712
+---
+ osc/commandline.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/osc/commandline.py b/osc/commandline.py
+index 78e66e0..ba57985 100644
+--- a/osc/commandline.py
++++ b/osc/commandline.py
+@@ -7860,7 +7860,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+             print('please specify a package name with the \'--name\' option. ' \
+                                 'The automatic detection failed', file=sys.stderr)
+             sys.exit(1)
+-
++        pac = pac.decode()
+         if conf.config['do_package_tracking']:
+             createPackageDir(os.path.join(project.dir, pac), project)
+         else:
+-- 
+2.23.0
+

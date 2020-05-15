@@ -1,0 +1,190 @@
+From ae41cdd0d2af39c3a6a1c5a256f865de71a93ce4 Mon Sep 17 00:00:00 2001
+From: Neal Gompa <ngompa13@gmail.com>
+Date: Mon, 18 Nov 2019 01:01:27 -0500
+Subject: [PATCH] Swap all usage of cgi.escape() with html.escape()
+
+In Python 3.8, cgi.escape() has been completely removed after
+being deprecated since Python 3.2. The suggested replacement
+is to use html.escape().
+---
+ osc/commandline.py | 28 ++++++++++++++--------------
+ osc/core.py        | 14 +++++++-------
+ 2 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/osc/commandline.py b/osc/commandline.py
+index 2b94b14..c3712c8 100644
+--- a/osc/commandline.py
++++ b/osc/commandline.py
+@@ -1241,7 +1241,7 @@ class Osc(cmdln.Cmdln):
+         if len(args) < 2 and is_project_dir(os.getcwd()):
+             if opts.diff:
+                 raise oscerr.WrongOptions('\'--diff\' is not supported in a project working copy')
+-            import cgi
++            import html
+             project = store_read_project(os.curdir)
+ 
+             sr_ids = []
+@@ -1295,7 +1295,7 @@ class Osc(cmdln.Cmdln):
+                         (project, target_prj_block, options_block)
+                 actionxml += s
+                 xml = """<request> %s <state name="new"/> <description>%s</description> </request> """ % \
+-                        (actionxml, cgi.escape(opts.message or ""))
++                        (actionxml, html.escape(opts.message or "", False))
+                 u = makeurl(apiurl, ['request'], query='cmd=create&addrevision=1')
+                 f = http_POST(u, data=xml)
+ 
+@@ -1864,9 +1864,9 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+         if not opts.message:
+             opts.message = edit_message()
+ 
+-        import cgi
++        import html
+         xml = """<request> %s <state name="new"/> <description>%s</description> </request> """ % \
+-              (actionsxml, cgi.escape(opts.message or ""))
++              (actionsxml, html.escape(opts.message or "", False))
+         u = makeurl(apiurl, ['request'], query='cmd=create')
+         f = http_POST(u, data=xml)
+ 
+@@ -1903,7 +1903,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+ 
+         ${cmd_option_list}
+         """
+-        import cgi
++        import html
+         args = slash_split(args)
+         apiurl = self.get_api_url()
+ 
+@@ -1958,7 +1958,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+         else:
+             r.add_action('add_role', tgt_project=project, tgt_package=package,
+               person_name=user, person_role=role)
+-        r.description = cgi.escape(opts.message or '')
++        r.description = html.escape(opts.message or '', False)
+         r.create(apiurl)
+         print(r.reqid)
+ 
+@@ -1983,7 +1983,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+             osc deletereq [-m TEXT] PROJECT [--all|--repository REPOSITORY]
+         ${cmd_option_list}
+         """
+-        import cgi
++        import html
+ 
+         args = slash_split(args)
+ 
+@@ -2025,7 +2025,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+ 
+         r = Request()
+         r.add_action('delete', tgt_project=project, tgt_package=package, tgt_repository=repository)
+-        r.description = cgi.escape(opts.message)
++        r.description = html.escape(opts.message, False)
+         if opts.accept_in_hours:
+           r.accept_at_in_hours(int(opts.accept_in_hours))
+         r.create(self.get_api_url())
+@@ -2046,7 +2046,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+ 
+         osc changedevelrequest PROJECT PACKAGE DEVEL_PROJECT [DEVEL_PACKAGE]
+         """
+-        import cgi
++        import html
+ 
+         if len(args) == 0 and is_package_dir('.') and find_default_project():
+             wd = os.curdir
+@@ -2075,7 +2075,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+         r = Request()
+         r.add_action('change_devel', src_project=devel_project, src_package=devel_package,
+             tgt_project=project, tgt_package=package)
+-        r.description = cgi.escape(opts.message)
++        r.description = html.escape(opts.message, False)
+         r.create(self.get_api_url())
+         print(r.reqid)
+ 
+@@ -2601,7 +2601,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+ 
+                 # check for devel instances after accepted requests
+                 if cmd in ['accept']:
+-                    import cgi
++                    import html
+                     sr_actions = rq.get_actions('submit')
+                     for action in sr_actions:
+                         u = makeurl(apiurl, ['/search/package'], {
+@@ -2641,7 +2641,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+                                                                                 project, package)
+                                     msg = "%s (forwarded request %s from %s)" % (rq.description, reqid, rq.creator)
+                                     rid = create_submit_request(apiurl, action.tgt_project, action.tgt_package,
+-                                                                project, package, cgi.escape(msg))
++                                                                project, package, html.escape(msg, False))
+                                     print(msg)
+                                     print("New request #", rid)
+                                     for req in reqs:
+@@ -8270,9 +8270,9 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+                 else:
+                     message = edit_message()
+ 
+-                import cgi
++                import html
+                 xml = """<request> %s <state name="new"/> <description>%s</description> </request> """ % \
+-                      (requestactionsxml, cgi.escape(message or ""))
++                      (requestactionsxml, html.escape(message or "", False))
+                 u = makeurl(apiurl, ['request'], query='cmd=create')
+                 f = http_POST(u, data=xml)
+ 
+diff --git a/osc/core.py b/osc/core.py
+index b1289e4..4dba361 100644
+--- a/osc/core.py
++++ b/osc/core.py
+@@ -4172,18 +4172,18 @@ def clone_request(apiurl, reqid, msg=None):
+ 
+ # create a maintenance release request
+ def create_release_request(apiurl, src_project, message=''):
+-    import cgi
++    import html
+     r = Request()
+     # api will complete the request
+     r.add_action('maintenance_release', src_project=src_project)
+     # XXX: clarify why we need the unicode(...) stuff
+-    r.description = cgi.escape(unicode(message, 'utf8'))
++    r.description = html.escape(unicode(message, 'utf8'), False)
+     r.create(apiurl)
+     return r
+ 
+ # create a maintenance incident per request
+ def create_maintenance_request(apiurl, src_project, src_packages, tgt_project, tgt_releaseproject, opt_sourceupdate, message='', enforce_branching=False):
+-    import cgi
++    import html
+     r = Request()
+     if src_packages:
+         for p in src_packages:
+@@ -4191,7 +4191,7 @@ def create_maintenance_request(apiurl, src_project, src_packages, tgt_project, t
+     else:
+         r.add_action('maintenance_incident', src_project=src_project, tgt_project=tgt_project, tgt_releaseproject=tgt_releaseproject, opt_sourceupdate = opt_sourceupdate)
+     # XXX: clarify why we need the unicode(...) stuff
+-    r.description = cgi.escape(unicode(message, 'utf8'))
++    r.description = html.escape(unicode(message, 'utf8'), False)
+     r.create(apiurl, addrevision=True, enforce_branching=enforce_branching)
+     return r
+ 
+@@ -4200,7 +4200,7 @@ def create_submit_request(apiurl,
+                          dst_project=None, dst_package=None,
+                          message="", orev=None, src_update=None, dst_updatelink=None):
+ 
+-    import cgi
++    import html
+     options_block = ""
+     package = ""
+     if src_package:
+@@ -4236,9 +4236,9 @@ def create_submit_request(apiurl,
+        orev or show_upstream_rev(apiurl, src_project, src_package),
+        targetxml,
+        options_block,
+-       cgi.escape(message))
++       html.escape(message, False))
+ 
+-    # Don't do cgi.escape(unicode(message, "utf8"))) above.
++    # Don't do html.escape(unicode(message, "utf8")), False) above.
+     # Promoting the string to utf8, causes the post to explode with:
+     #   uncaught exception: Fatal error: Start tag expected, '&lt;' not found at :1.
+     # I guess, my original workaround was not that bad.
+-- 
+2.21.0
+

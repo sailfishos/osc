@@ -1,0 +1,35 @@
+From 7d4ec5b35be12b0dcc741cf050adf864b1b60735 Mon Sep 17 00:00:00 2001
+From: Neal Gompa <ngompa13@gmail.com>
+Date: Fri, 27 Dec 2019 11:35:17 -0500
+Subject: [PATCH] Do not attempt to run source services when --local-package is
+ set
+
+Since c39c3b8cae826723c23e5115e5c051438d7aa8ba, osc has accidentally refused
+to permit local builds for package sources that are not from a working copy,
+even when --local-package is passed in. This is because it attempts to
+instantiate a Package() object, which fails because there's no osc working
+copy to instantiate from.
+
+Since any build passing --local-package probably can't run source services
+anyway, let's restore the capability to build with it by having it skip
+any attempt to run them automatically when the option is passed.
+---
+ osc/build.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/osc/build.py b/osc/build.py
+index 46bd61f0..8f66f82b 100644
+--- a/osc/build.py
++++ b/osc/build.py
+@@ -727,7 +727,7 @@ def main(apiurl, opts, argv):
+         buildargs.append('--noinit')
+ 
+     # check for source services
+-    if not opts.offline and not opts.noservice:
++    if not opts.offline and not opts.noservice and not opts.local_package:
+         p = osc.core.Package(os.curdir)
+         r = p.run_source_services(verbose=True)
+         if r:
+-- 
+2.23.0
+
