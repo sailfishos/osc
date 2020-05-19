@@ -6,7 +6,7 @@
 
 Name:           osc
 Summary:        Open Build Service Commander
-Version:        0.167.1
+Version:        0.168.2
 Release:        0
 License:        GPLv2+
 URL:            https://github.com/openSUSE/osc
