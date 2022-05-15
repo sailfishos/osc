@@ -1,24 +1,24 @@
-From 969f41d2cd6fa492dfb4f501da69003646588580 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Marko Lemmetty <marko.lemmetty@jollamobile.com>
 Date: Fri, 15 May 2020 14:20:54 +0300
-Subject: [PATCH 2/8] Support 'osc copyprj' in api by Islam Amer      usage:   
-         osc copyprj SOURCEPRJ DESTPRJ
+Subject: [PATCH] Support 'osc copyprj' in api by Islam Amer usage: osc copyprj
+ SOURCEPRJ DESTPRJ
 
     A way to copy a project and all packages in it
     It can not yet be done across buildservice instances
     The user must be able to create DESTPRJ
 ---
- osc/commandline.py | 53 ++++++++++++++++++++++++++++++++++++++++++++++
- osc/core.py        | 28 ++++++++++++++++++++++++
- 2 files changed, 81 insertions(+)
+ osc/commandline.py | 52 ++++++++++++++++++++++++++++++++++++++++++++++
+ osc/core.py        | 28 +++++++++++++++++++++++++
+ 2 files changed, 80 insertions(+)
 
 diff --git a/osc/commandline.py b/osc/commandline.py
-index 78e66e0..57e2092 100644
+index b7c19bc63e1dbd5566ead116890df62a72a4bb05..7fc9dd5c47cb46d494f206a94793511e5fe901de 100644
 --- a/osc/commandline.py
 +++ b/osc/commandline.py
-@@ -3084,6 +3084,59 @@ Please submit there instead, or use --nodevelproject to force direct submission.
-                 break
-             sys.stdout.write(decode_it(buf))
+@@ -2106,6 +2106,58 @@ class Osc(cmdln.Cmdln):
+             else:
+                 raise oscerr.WrongOptions('The --delete switch is only for pattern metadata or attributes.')
  
 +    @cmdln.option('-b', '--with-binaries', action='store_true',
 +                        help='copy the built binaries over to avoid a rebuild')
@@ -31,7 +31,8 @@ index 78e66e0..57e2092 100644
 +    @cmdln.option('-m', '--message', metavar='TEXT',
 +                  help='specify message TEXT')
 +    def do_copyprj(self, subcmd, opts, *args):
-+        """${cmd_name}: Copy a project
++        """
++        Copy a project
 +
 +        A way to copy a project and all packages in it
 +
@@ -41,14 +42,12 @@ index 78e66e0..57e2092 100644
 +
 +        usage:
 +            osc copyprj SOURCEPRJ DESTPRJ
-+        ${cmd_option_list}
 +        """
 +
 +        args = slash_split(args)
 +
 +        if not args or len(args) != 2:
-+            raise oscerr.WrongArgs('Incorrect number of arguments.\n\n' \
-+                  + self.get_cmd_help('copypac'))
++            raise oscerr.WrongArgs('Incorrect number of arguments.')
 +
 +        src_project = args[0]
 +        dst_project = args[1]
@@ -63,24 +62,24 @@ index 78e66e0..57e2092 100644
 +        if src_project == dst_project:
 +            raise oscerr.WrongArgs('Source and destination are the same.')
 +
-+        print "calling cp"
++        print("calling cp")
 +        r = copy_prj(src_apiurl, src_project, dst_project,
 +                     withbinaries = opts.with_binaries,
 +                     withhistory = opts.with_history,
 +                     makeolder = opts.make_older,
 +                     resign = opts.re_sign,
 +                     comment = comment)
-+        print "done cp"
-+        print r
++        print("done cp")
++        print(r)
 +
+     # TODO: rewrite and consolidate the current submitrequest/createrequest "mess"
  
      @cmdln.option('-m', '--message', metavar='TEXT',
-                         help='specify message TEXT')
 diff --git a/osc/core.py b/osc/core.py
-index 77d0c00..93cf801 100644
+index 3a5543dc356d9831d5f868ff0ae62155e4135682..116d4f2e895d1ed03aba483588cd78ef168175f7 100644
 --- a/osc/core.py
 +++ b/osc/core.py
-@@ -5507,6 +5507,34 @@ def copy_pac(src_apiurl, src_project, src_package,
+@@ -6279,6 +6279,34 @@ def copy_pac(
              raise oscerr.APIError('failed to copy: %s' % ', '.join(todo))
          return 'Done.'
  
@@ -96,7 +95,7 @@ index 77d0c00..93cf801 100644
 +    Copying can only be done on the server, in a single api call.
 +    """
 +
-+    print 'Copying project...'
++    print('Copying project...')
 +    query = {'cmd': 'copy', 'oproject': src_project }
 +    if withbinaries:
 +        query['withbinaries'] = '1'
@@ -109,12 +108,9 @@ index 77d0c00..93cf801 100644
 +    if comment:
 +        query['comment'] = comment
 +    u = makeurl(src_apiurl, ['source', dst_project], query=query)
-+    print >>sys.stderr, "copyprj ", u
++    print("copyprj ", u, file=sys.stderr)
 +    f = http_POST(u)
 +    return f.read()
  
- def unlock_package(apiurl, prj, pac, msg):
-     query = {'cmd': 'unlock', 'comment': msg}
--- 
-2.25.4
-
+ def lock(apiurl: str, project: str, package: str, msg: str = None):
+     url_path = ["source", project]
