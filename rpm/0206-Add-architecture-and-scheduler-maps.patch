@@ -1,7 +1,7 @@
-From 52e0b8ed7ac20ffe1724ba7cab45af9483fba895 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Marko Lemmetty <marko.lemmetty@jollamobile.com>
 Date: Fri, 15 May 2020 15:16:37 +0300
-Subject: [PATCH 6/8] Add architecture and scheduler maps
+Subject: [PATCH] Add architecture and scheduler maps
 
 Makes preferring local packages with armv8el and i486 OBS schedulers
 work. These mappings armv7hl/armv7tnhl -> armv8el and i486 ->
@@ -13,20 +13,17 @@ command.
  1 file changed, 4 insertions(+)
 
 diff --git a/osc/util/packagequery.py b/osc/util/packagequery.py
-index ac2c74c..187e5eb 100644
+index 39356f5e6840d186f67dd52e10c86913ae8e60a5..80312eb326bd2f476fe6ffed76bb0211b6cd62b6 100644
 --- a/osc/util/packagequery.py
 +++ b/osc/util/packagequery.py
-@@ -18,6 +18,10 @@ class PackageQueries(dict):
+@@ -21,6 +21,10 @@ class PackageQueries(dict):
      # map debian and rpm arches to common obs arches
      architectureMap = {'i386': ['i586', 'i686'], 'amd64': ['x86_64'], 'ppc64el': ['ppc64le'], 'armv6hl': ['armv6l'], 'armv7hl': ['armv7l']}
  
 +    # map rpm arches to mer obs scheduler arches
-+    architectureMap.update({'armv7hl': ['armv8el'], 'armv7tnhl': ['armv8el'], 
++    architectureMap.update({'armv7hl': ['armv8el'], 'armv7tnhl': ['armv8el'],
 +                            'i486': ['i586', 'i686']})
 +
      def __init__(self, wanted_architecture):
          self.wanted_architecture = wanted_architecture
-         super(PackageQueries, self).__init__()
--- 
-2.25.4
-
+         super().__init__()

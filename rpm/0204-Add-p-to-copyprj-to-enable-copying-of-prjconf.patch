@@ -1,7 +1,7 @@
-From 70d9613d954c29dc43ed2e1a93e7a841b93114f0 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Marko Lemmetty <marko.lemmetty@jollamobile.com>
 Date: Fri, 15 May 2020 14:47:19 +0300
-Subject: [PATCH 4/8] Add -p to copyprj to enable copying of prjconf
+Subject: [PATCH] Add -p to copyprj to enable copying of prjconf
 
 ---
  osc/commandline.py | 4 +++-
@@ -9,10 +9,10 @@ Subject: [PATCH 4/8] Add -p to copyprj to enable copying of prjconf
  2 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/osc/commandline.py b/osc/commandline.py
-index 4213e49..dd61dfc 100644
+index 0193257de62a41abde0d0ff85e453c62399d8514..cc223c2f41bebe366995b511485d86cff02b9080 100644
 --- a/osc/commandline.py
 +++ b/osc/commandline.py
-@@ -3092,6 +3092,8 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+@@ -3961,6 +3961,8 @@ Please submit there instead, or use --nodevelproject to force direct submission.
                          help='replicate the history of each package.')
      @cmdln.option('-o', '--make-older', action='store_true',
                          help='No idea')
@@ -21,20 +21,20 @@ index 4213e49..dd61dfc 100644
      @cmdln.option('-r', '--re-sign', action='store_true',
                          help='re-sign the binaries')
      @cmdln.option('-m', '--message', metavar='TEXT',
-@@ -3137,7 +3139,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+@@ -4006,7 +4008,7 @@ Please submit there instead, or use --nodevelproject to force direct submission.
                       withhistory = opts.with_history,
                       makeolder = opts.make_older,
                       resign = opts.re_sign,
 -                     now = opts.now,
 +                     now = opts.now, prjconf = opts.prjconf,
                       comment = comment)
-         print "done cp"
-         print r
+         print("done cp")
+         print(r)
 diff --git a/osc/core.py b/osc/core.py
-index f7abfd7..147b575 100644
+index 6e022113908591a8d9eda9bfc5776851acc8960b..663ce623d1b07f51f3e8e75cc503137ed4117ab2 100644
 --- a/osc/core.py
 +++ b/osc/core.py
-@@ -5512,6 +5512,8 @@ def copy_prj(src_apiurl, src_project, dst_project,
+@@ -6284,6 +6284,8 @@ def copy_prj(src_apiurl, src_project, dst_project,
               withhistory = False,
               makeolder = False,
               resign = False,
@@ -43,7 +43,7 @@ index f7abfd7..147b575 100644
               comment = None):
      """
      Create a copy of a project.
-@@ -5533,6 +5535,9 @@ def copy_prj(src_apiurl, src_project, dst_project,
+@@ -6305,6 +6307,9 @@ def copy_prj(src_apiurl, src_project, dst_project,
          query['comment'] = comment
      if now:
          query['nodelay'] = '1'
@@ -53,6 +53,3 @@ index f7abfd7..147b575 100644
      u = makeurl(src_apiurl, ['source', dst_project], query=query)
      print >>sys.stderr, "copyprj ", u
      f = http_POST(u)
--- 
-2.25.4
-

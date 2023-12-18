@@ -1,10 +1,10 @@
-From 54f93e0627978139d021e6b087a877a308588987 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Marko Lemmetty <marko.lemmetty@jollamobile.com>
 Date: Fri, 15 May 2020 15:04:41 +0300
-Subject: [PATCH 5/8] Add support for --rebuild and --chroot-only in build.    
- --rebuild sends --skip-prep to build and rpm to skip the %prep phase.    
- This is useful in conjunction with the --rsync* options to enable rapid    
- rebuilds in the clean rpmbuild environment.
+Subject: [PATCH] Add support for --rebuild and --chroot-only in build.
+ --rebuild sends --skip-prep to build and rpm to skip the %prep phase. This is
+ useful in conjunction with the --rsync* options to enable rapid rebuilds in
+ the clean rpmbuild environment.
 
     --chroot-only creates a chroot without doing a build - this can be used to
     build scratchbox2 targets
@@ -14,10 +14,10 @@ Subject: [PATCH 5/8] Add support for --rebuild and --chroot-only in build.
  2 files changed, 10 insertions(+)
 
 diff --git a/osc/build.py b/osc/build.py
-index dfa9997..82677dc 100644
+index cbd1291670ede8dd9f28eae8a940da75713d553a..d11dfb9f6ed5156a41da72c89d7e5aa3b0565c85 100644
 --- a/osc/build.py
 +++ b/osc/build.py
-@@ -569,6 +569,12 @@ def main(apiurl, opts, argv):
+@@ -727,6 +727,12 @@ def main(apiurl, store, opts, argv):
          buildargs.append('--norootforbuild')
      if opts.clean:
          buildargs.append('--clean')
@@ -31,10 +31,10 @@ index dfa9997..82677dc 100644
          buildargs.append('--no-checks')
      if not opts.no_changelog:
 diff --git a/osc/commandline.py b/osc/commandline.py
-index dd61dfc..ea3d93f 100644
+index cc223c2f41bebe366995b511485d86cff02b9080..abd13c660a9be187e14608708179aee51afdd61f 100644
 --- a/osc/commandline.py
 +++ b/osc/commandline.py
-@@ -6322,6 +6322,10 @@ Please submit there instead, or use --nodevelproject to force direct submission.
+@@ -7119,6 +7119,10 @@ Please submit there instead, or use --nodevelproject to force direct submission.
                    help='Copy overlay filesystem to buildroot after installing all RPMs .')
      @cmdln.option('--noinit', '--no-init', action='store_true',
                    help='Skip initialization of build root and start with build immediately.')
@@ -45,6 +45,3 @@ index dd61dfc..ea3d93f 100644
      @cmdln.option('--nochecks', '--no-checks', action='store_true',
                    help='Do not run build checks on the resulting packages.')
      @cmdln.option('--no-verify', '--noverify', action='store_true',
--- 
-2.25.4
-
