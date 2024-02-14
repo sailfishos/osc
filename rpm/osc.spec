@@ -22,6 +22,7 @@ Patch0005:      0005-Add-support-for-rebuild-and-chroot-only-in-build.-re.patch
 Patch0006:      0006-Add-architecture-and-scheduler-maps.patch
 Patch0007:      0007-Trap-any-kind-of-exception-during-plugin-parsing-eg-.patch
 Patch0008:      0008-Fix-hdrmd5-check-of-downloaded-packages-from-DoD-rep.patch
+Patch0009:      0009-Use-busybox-compatible-commands-for-completion.patch
 BuildRequires:  python3-cryptography
 BuildRequires:  python3-devel
 BuildRequires:  python3-distro
