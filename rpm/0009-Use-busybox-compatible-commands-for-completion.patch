@@ -1,15 +1,15 @@
-commit 9146eb78eb22c59c438b985bf0486adab5292883
-Author: Peter G <sailfish@nephros.org>
+commit 2b7f92e63792ce3eaf13e34fa87aca2562becf64
+Author: nephros <nemo@pgxperiiia10>
 Date:   Wed Feb 14 10:40:36 2024 +0100
 
     Use busybox compatible commands for completion
     
-     - use busybox date(1)
+     - use portable call to date(1)
      - use plain stat(1) for ctime
      - don't use mv -u
 
 diff --git a/contrib/osc.complete b/contrib/osc.complete
-index a734b615..1c83ca04 100755
+index a734b615..fe274d41 100755
 --- a/contrib/osc.complete
 +++ b/contrib/osc.complete
 @@ -152,12 +152,12 @@ fi
@@ -19,7 +19,7 @@ index a734b615..1c83ca04 100755
 -        typeset -i ctime=$(command date -d "$(command stat -c '%z' ${projects})" +'%s')
 -        typeset -i   now=$(command date -d now +'%s')
 +        typeset -i ctime=$(command stat -c '%Z' ${projects})
-+        typeset -i   now=$(command date -D -F +'%s')
++        typeset -i   now=$(command date +'%s')
          if ((now - ctime > 86400)) ; then
              if tmp=$(mktemp ${projects}.XXXXXX) ; then
                  command ${command} ls / >| $tmp
