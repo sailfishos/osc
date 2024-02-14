@@ -1,0 +1,30 @@
+commit 9146eb78eb22c59c438b985bf0486adab5292883
+Author: nephros <nemo@pgxperiiia10>
+Date:   Wed Feb 14 10:40:36 2024 +0100
+
+    Use busybox compatible commands for completion
+    
+     - use busybox date(1)
+     - use plain stat(1) for ctime
+     - don't use mv -u
+
+diff --git a/contrib/osc.complete b/contrib/osc.complete
+index a734b615..1c83ca04 100755
+--- a/contrib/osc.complete
++++ b/contrib/osc.complete
+@@ -152,12 +152,12 @@ fi
+ update_projects_list ()
+ {
+     if test -s "${projects}" ; then
+-        typeset -i ctime=$(command date -d "$(command stat -c '%z' ${projects})" +'%s')
+-        typeset -i   now=$(command date -d now +'%s')
++        typeset -i ctime=$(command stat -c '%Z' ${projects})
++        typeset -i   now=$(command date -D -F +'%s')
+         if ((now - ctime > 86400)) ; then
+             if tmp=$(mktemp ${projects}.XXXXXX) ; then
+                 command ${command} ls / >| $tmp
+-	        mv -uf $tmp ${projects}
++	        mv -f $tmp ${projects}
+ 	    fi
+         fi
+     else
